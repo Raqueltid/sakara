@@ -1,0 +1,20 @@
+{% extends "default.html" %}
+{% load static from staticfiles %}
+{% block page_title %} Login {% endblock %}
+{% block content %}
+    <header>
+        <div class="row">
+            <h2>Sakara: Login</h2>
+        </div>
+        {% load flash_messages %}{% print_flash_messages messages %}
+    </header>
+	<form id="login-form" method="post" action="/login/">{% csrf_token %}
+        <div class="row">
+            {{ form.username }}
+        </div>
+        <div class="row">
+            {{ form.password }}
+        </div>
+		<input id="submit"  type="submit" value="Entrar" />
+	</form>
+{% endblock %}

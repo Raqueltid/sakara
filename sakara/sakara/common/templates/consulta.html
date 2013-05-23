@@ -1,0 +1,11 @@
+{% extends "default.html" %}
+{% load static from staticfiles %}
+{% block page_title %} Consulta {% endblock %}
+{% block content %}
+    <header>
+        <div class="row">
+            <h2>Sakara: Consulta</h2>
+        </div>
+        {% load flash_messages %}{% print_flash_messages messages %}
+    </header>
+{% endblock %}
