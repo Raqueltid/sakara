@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-
+import views
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
@@ -14,5 +14,7 @@ urlpatterns = patterns('',
 
     # Uncomment the next line to enable the admin:
     # url(r'^admin/', include(admin.site.urls)),
-    url(r'/', include('sakara.common.urls'))
+    url(r'^$', views.LoginView.as_view()),
+    url(r'^login/$', views.LoginView.as_view()),
+    url(r'^consulta/$', views.ConsultaView.as_view())
 )
