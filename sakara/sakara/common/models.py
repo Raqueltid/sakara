@@ -35,10 +35,9 @@ class Tipos(models.Model):
 
 
 class Subtipos(models.Model):
-    id_subtipo = models.PositiveIntegerField()
     id_tipo = models.PositiveIntegerField()
     nombre = models.CharField(max_length=50)
-
+    descripcion = models.CharField(max_length=200)
 
 class Consulta(models.Model):
     id_cliente = models.PositiveIntegerField()
