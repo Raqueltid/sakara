@@ -7,12 +7,12 @@ class Clientes(models.Model):
     fecha_nac = models.DateTimeField()
     direccion = models.CharField(max_length=100)
     email = models.EmailField()
-    observaciones = models.CharField(max_length=200)
+    observaciones = models.CharField(max_length=200, blank=True)
 
 
 class Productos(models.Model):
     nombre = models.CharField(max_length=50)
-    descripcion = models.CharField(max_length=200)
+    descripcion = models.CharField(max_length=200, blank=True)
 
 
 class VentaProducto(models.Model):
