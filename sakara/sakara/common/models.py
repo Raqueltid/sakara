@@ -24,13 +24,11 @@ class VentaProducto(models.Model):
 
 
 class Servicios(models.Model):
-    id_servicio = models.PositiveIntegerField()
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=200)
 
 
 class Tipos(models.Model):
-    id_tipo = models.PositiveIntegerField()
     id_servicio = models.PositiveIntegerField()
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=200)
@@ -43,7 +41,6 @@ class Subtipos(models.Model):
 
 
 class Consulta(models.Model):
-    id_consulta = models.PositiveIntegerField()
     id_cliente = models.PositiveIntegerField()
     id_servicio = models.PositiveIntegerField()
     id_tipo = models.PositiveIntegerField()
