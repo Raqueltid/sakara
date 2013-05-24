@@ -21,3 +21,29 @@ class VentaProducto(models.Model):
     fecha = models.DateField()
     cantidad = models.PositiveIntegerField()
     pago = models.FloatField()
+
+
+class Servicios(models.Model):
+    nombre = models.CharField(max_length=50)
+    descripcion = models.CharField(max_length=200)
+
+
+class Tipos(models.Model):
+    id_servicio = models.PositiveIntegerField()
+    nombre = models.CharField(max_length=50)
+    descripcion = models.CharField(max_length=200)
+
+
+class Subtipos(models.Model):
+    id_tipo = models.PositiveIntegerField()
+    nombre = models.CharField(max_length=50)
+    descripcion = models.CharField(max_length=200)
+
+class Consulta(models.Model):
+    id_cliente = models.PositiveIntegerField()
+    id_servicio = models.PositiveIntegerField()
+    id_tipo = models.PositiveIntegerField()
+    id_subtipo = models.PositiveIntegerField()
+    fecha = models.DateField()
+    pago = models.FloatField()
+    tipo_pago = models.CharField(max_length=50)
