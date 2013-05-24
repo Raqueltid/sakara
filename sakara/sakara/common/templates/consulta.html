@@ -8,4 +8,27 @@
         </div>
         {% load flash_messages %}{% print_flash_messages messages %}
     </header>
+    <div id="tab1">
+        <form id="cliente-form" method="post" action="/consulta/">{% csrf_token %}
+            <div class="row">
+                {{ form.nombres }}
+            </div>
+            <div class="row">
+                {{ form.apellidos }}
+            </div>
+            <div class="row">
+                {{ form.fecha_nac }}
+            </div>
+            <div class="row">
+                {{ form.direccion }}
+            </div>
+            <div class="row">
+                {{ form.email }}
+            </div>
+            <div class="row">
+                {{ form.observaciones }}
+            </div>
+            <input id="submit"  type="submit" value="Añadir" />
+        </form>
+    </div>
 {% endblock %}
