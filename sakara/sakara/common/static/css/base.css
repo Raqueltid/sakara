@@ -1,0 +1,11 @@
+body {
+    font-size: 62.5%;
+    font-family: "Trebuchet MS", "Arial", "Helvetica", "Verdana", "sans-serif";
+}
+table {
+    font-size: 1em;
+}
+
+input.error{
+    border: 2px solid #C03220;
+}

@@ -2,6 +2,16 @@
 {% load static from staticfiles %}
 {% block page_title %} Consulta {% endblock %}
 {% block content %}
+    <script type="text/javascript">
+        $(function() {
+            $( "#id_fecha_nac" ).datepicker({
+                firstDay: 1,
+                changeMonth: true,
+                changeYear: true
+            });
+            $( "#id_fecha_nac" ).datepicker( $.datepicker.regional[ "es" ] );
+        });
+    </script>
     <header>
         <div class="row">
             <h2>Sakara: Consulta</h2>
@@ -9,24 +19,31 @@
         {% load flash_messages %}{% print_flash_messages messages %}
     </header>
     <div id="tab1">
+        {% load jquery_validate %}  {% validate form "cliente-form" %}
         <form id="cliente-form" method="post" action="/consulta/">{% csrf_token %}
             <div class="row">
                 {{ form.nombres }}
+                {% validate_server form "nombres" %}
             </div>
             <div class="row">
                 {{ form.apellidos }}
+                {% validate_server form "apellidos" %}
             </div>
             <div class="row">
                 {{ form.fecha_nac }}
+                {% validate_server form "fecha_nac" %}
             </div>
             <div class="row">
                 {{ form.direccion }}
+                {% validate_server form "direccion" %}
             </div>
             <div class="row">
                 {{ form.email }}
+                {% validate_server form "email" %}
             </div>
             <div class="row">
                 {{ form.observaciones }}
+                {% validate_server form "observaciones" %}
             </div>
             <input id="submit"  type="submit" value="Añadir" />
         </form>
