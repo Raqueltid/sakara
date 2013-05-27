@@ -9,7 +9,7 @@ from django.contrib import messages
 from sakara.common.models import Clientes
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-
+from sakara.jquery_validate import JqueryForm
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -33,19 +33,64 @@ class LoginForm(forms.Form):
     )
 
 
-class ClientesForm(forms.ModelForm):
+class ClientesForm(JqueryForm):
+
+    nombres = forms.CharField(
+        max_length=50,
+        error_messages={
+            'required': "Campo obligatorio.",
+            'max_length': u"La longitud m\u00E1xima permitida es de 50 car\u00E1cteres.",
+        },
+        widget=forms.TextInput(attrs={'placeholder': 'Nombre'})
+    )
+
+    apellidos = forms.CharField(
+        max_length=100,
+        error_messages={
+            'required': "Campo obligatorio.",
+            'max_length': u"La longitud m\u00E1xima permitida es de 100 car\u00E1cteres."
+        },
+        widget=forms.TextInput(attrs={'placeholder': 'Apellidos'})
+    )
+
+    fecha_nac = forms.DateField(
+        input_formats=['%d/%m/%Y'],
+        help_text='Formato: 03/03/2013',
+        error_messages={
+            'required': "Campo obligatorio",
+            'invalid': u"El formato no es v\u00E1lido."
+        },
+        widget=forms.DateInput(attrs={'placeholder': 'Fecha', 'autocomplete': 'off'})
+    )
+
+    direccion = forms.CharField(
+        max_length=100,
+        error_messages={
+            'required': "Campo obligatorio.",
+            'max_length': u"La longitud m\u00E1xima permitida es de 100 car\u00E1cteres."
+        },
+        widget=forms.TextInput(attrs={'placeholder': 'Dirección'})
+    )
+
+    email = forms.EmailField(
+        error_messages={
+            'required': "Campo obligatorio.",
+            'invalid': "Email invalido."
+        },
+        widget=forms.TextInput(attrs={'placeholder': 'Email'})
+    )
+
+    observaciones = forms.CharField(
+        max_length=200,
+        required=False,
+        error_messages={
+            'max_length': u'La longitud m\u00E1xima permitida es de 200 car\u00E1cteres.'
+        },
+        widget=forms.Textarea(attrs={'placeholder': 'Observaciones', 'cols': 50, 'rows': 10})
+    )
+
     class Meta:
         model = Clientes
-        # Nota: Eliminando el atributo 'fields' anade por defecto todos los elemetnos
-        widgets = {
-            'nombres': forms.TextInput(attrs={'placeholder': 'Nombre'}),
-            'apellidos': forms.TextInput(attrs={'placeholder': 'Apellidos'}),
-            #TODO: Fecha de nacimiento con calendario // Por ahora acepta formato %m/%d%/%Y
-            'fecha_nac': forms.DateInput(format='%d/%m/%Y', attrs={'placeholder': 'Fecha'}),
-            'direccion': forms.TextInput(attrs={'placeholder': 'Dirección'}),
-            'email': forms.TextInput(attrs={'placeholder': 'Email'}),
-            'observaciones': forms.Textarea(attrs={'placeholder': 'Observaciones', 'cols': 50, 'rows': 10}),
-        }
 
 
 class LoginView(TemplateView):
@@ -92,8 +137,8 @@ class ConsultaView(TemplateView):
 
         if form.is_valid():
             form.save()
-            messages.success(request, "Cliente anyadido correctamente!")
+            messages.success(request, u"Cliente a\u00F1adido correctamente!")
             return HttpResponseRedirect('')
         else:
-            messages.error(request, "No se ha podido anyadir el Cliente.")
+            messages.error(request, u"No se ha podido a\u00F1adir el Cliente.")
         return self.render_to_response(v)
