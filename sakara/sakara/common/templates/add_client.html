@@ -1,26 +1,26 @@
 {% extends "default.html" %}
 {% load static from staticfiles %}
-{% block page_title %} Consulta {% endblock %}
+{% block page_title %} Añadir Cliente {% endblock %}
 {% block content %}
     <script type="text/javascript">
         $(function() {
-            $( "#id_fecha_nac" ).datepicker({
+            $( "#id_fecha_nac, #id_fecha_alta" ).datepicker({
                 firstDay: 1,
                 changeMonth: true,
                 changeYear: true
             });
-            $( "#id_fecha_nac" ).datepicker( $.datepicker.regional[ "es" ] );
+            $( "#id_fecha_nac, #id_fecha_alta" ).datepicker( $.datepicker.regional[ "es" ] );
         });
     </script>
     <header>
         <div class="row">
-            <h2>Sakara: Consulta</h2>
+            <h2>Añadir cliente</h2>
         </div>
         {% load flash_messages %}{% print_flash_messages messages %}
     </header>
     <div id="tab1">
         {% load jquery_validate %}  {% validate form "cliente-form" %}
-        <form id="cliente-form" method="post" action="/consulta/">{% csrf_token %}
+        <form id="cliente-form" method="post" action="/client/add/">{% csrf_token %}
             <div class="row">
                 {{ form.nombres }}
                 {% validate_server form "nombres" %}
@@ -32,6 +32,9 @@
             <div class="row">
                 {{ form.fecha_nac }}
                 {% validate_server form "fecha_nac" %}
+                <div class="help_text">
+                    {{ form.fecha_nac.help_text }}
+                </div>
             </div>
             <div class="row">
                 {{ form.direccion }}
@@ -40,6 +43,21 @@
             <div class="row">
                 {{ form.email }}
                 {% validate_server form "email" %}
+            </div>
+            <div class="row">
+                {{ form.telefono }}
+                {% validate_server form "telefono" %}
+            </div>
+            <div class="row">
+                {{ form.movil }}
+                {% validate_server form "movil" %}
+            </div>
+            <div class="row">
+                {{ form.fecha_alta }}
+                {% validate_server form "fecha_alta" %}
+                <div class="help_text">
+                    {{ form.fecha_alta.help_text }}
+                </div>
             </div>
             <div class="row">
                 {{ form.observaciones }}
