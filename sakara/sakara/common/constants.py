@@ -1,0 +1,7 @@
+#REGEX
+CONST_PHONENUMBER = r'^[0-9]+$'
+
+
+#URLS
+CONST_URL_HOME = '/home/'
+CONST_URL_ADD_CLIENT = '/client/add/'
