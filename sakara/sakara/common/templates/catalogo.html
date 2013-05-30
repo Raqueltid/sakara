@@ -1,0 +1,27 @@
+{% extends "default.html" %}
+{% load static from staticfiles %}
+{% block page_title %} Catalogo {% endblock %}
+{% block content %}
+    <header>
+        <div class="row">
+            <h2>Sakara: Catalogo</h2>
+        </div>
+        {% load flash_messages %}{% print_flash_messages messages %}
+    </header>
+    <div id="tab1">
+        <form id="servicios-form" method="post" action="/catalogo/">{% csrf_token %}
+            <div class="row">
+                {{ form.padre }}
+            </div>
+            <div class="row">
+                {{ form.servicio }}
+            </div>
+            <div class="row">
+                {{ form.descripcion }}
+            </div>
+            <button id="servicios-submit" name="servicios-submit" type="submit">
+                <span>Añadir Servicio</span>
+            </button>
+        </form>
+    </div>
+{% endblock %}
