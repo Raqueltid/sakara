@@ -13,6 +13,16 @@ class Clientes(models.Model):
     fecha_alta = models.DateField()
     observaciones = models.CharField(max_length=200, blank=True)
 
+    def _get_full_name(self):
+        "Returns the person's full name."
+        return u'%s %s' % (self.nombres, self.apellidos)
+    full_name = property(_get_full_name)
+
+    def copy_model_instance(self, obj, id):
+        for f in obj._meta.fields:
+            self.__setattr__(f.name, getattr(obj, f.name))
+        self.id = self.pk = id
+        return self
 
 class Productos(models.Model):
     nombre = models.CharField(max_length=50)

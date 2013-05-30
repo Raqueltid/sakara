@@ -1,6 +1,12 @@
 {% extends "default.html" %}
 {% load static from staticfiles %}
-{% block page_title %} Añadir Cliente {% endblock %}
+{% block page_title %}
+    {% if params.id %}
+        Editar Cliente
+    {% else %}
+        Añadir Cliente
+    {% endif %}
+{% endblock %}
 {% block content %}
     <script type="text/javascript">
         $(function() {
@@ -14,13 +20,22 @@
     </script>
     <header>
         <div class="row">
-            <h2>Añadir cliente</h2>
+            {% if params.id %}
+                <h2>Editar cliente</h2>
+            {% else %}
+                <h2>Añadir cliente</h2>
+            {% endif %}
         </div>
         {% load flash_messages %}{% print_flash_messages messages %}
     </header>
     <div id="tab1">
         {% load jquery_validate %}  {% validate form "cliente-form" %}
-        <form id="cliente-form" method="post" action="/client/add/">{% csrf_token %}
+        {% if params.id %}
+            <form id="cliente-form" method="post" action="/client/{{ params.id }}/edit/">
+        {% else %}
+            <form id="cliente-form" method="post" action="/client/add/">
+        {% endif %}
+            {% csrf_token %}
             <div class="row">
                 {{ form.nombres }}
                 {% validate_server form "nombres" %}
@@ -63,7 +78,11 @@
                 {{ form.observaciones }}
                 {% validate_server form "observaciones" %}
             </div>
-            <input id="submit"  type="submit" value="Añadir Cliente" />
+            {% if params.id %}
+                <input id="submit"  type="submit" value="Guardar" />
+            {% else %}
+                <input id="submit"  type="submit" value="Añadir" />
+            {% endif %}
         </form>
     </div>
 {% endblock %}
