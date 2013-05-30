@@ -1,0 +1,61 @@
+{% extends "default.html" %}
+{% load static from staticfiles %}
+{% block page_title %} Clientes {% endblock %}
+{% block content %}
+    <div id="pagination">
+        <table>
+            <tr>
+                <td>Nombre</td>
+                <td>Fecha nacimiento</td>
+                <td>Fecha de alta</td>
+                <td></td>
+            </tr>
+            {% for contact in clients %}
+                <tr>
+                {# Each "contact" is a Contact model object. #}
+                    <td>{{ contact.full_name|upper }}</td>
+                    <td>{{ contact.birthdate|upper }}</td>
+                    <td>{{ contact.date|upper }}</td>
+                    <td><a href="/client/{{ contact.id }}/edit">Editar</a></td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <div class="pagination">
+            <span class="step-links">
+                {% if clients.has_previous %}
+                    <button type="button" onclick="pagination(1)">First</button>
+                    <button type="button" onclick="pagination({{ clients.previous_page_number }})">previous</button>
+                {% endif %}
+                <ul>
+                    {% for item in clients.paginator.page_range %}
+                        <li>
+                            {% ifequal item clients.number %}
+                                {{ item }}
+                            {% else %}
+                                <a href="javascript:void(0)" onclick="pagination({{ item }})">{{ item }}</a>
+                            {% endifequal %}
+                        </li>
+                    {% endfor %}
+                </ul>
+                {% if clients.has_next %}
+                    <button type="button" onclick="pagination({{ clients.next_page_number }})">next</button>
+                    <button type="button" onclick="pagination({{ clients.paginator.num_pages }})">Last</button>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+<script type="text/javascript">
+    function pagination(index){
+        $.ajax({
+            type : 'GET',
+            url : '/client/',
+            data : {"page": index},
+            success: function(data)
+            {
+                $("#pagination").html($(data).filter("#pagination").html());
+            }
+        });
+	}
+</script>
+{% endblock %}
