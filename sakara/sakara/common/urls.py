@@ -19,5 +19,6 @@ urlpatterns = patterns('',
     url(r'^home/$', views.HomeView.as_view()),
     url(r'^client/$', views.ClientView.as_view()),
     url(r'^client/(?P<id>[0-9]+)/edit/$', views.AddClientView.as_view()),
-    url(r'^client/add/$', views.AddClientView.as_view())
+    url(r'^client/add/$', views.AddClientView.as_view()),
+    url(r'^catalogo/$', views.CatalogoView.as_view()),
 )
