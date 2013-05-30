@@ -6,7 +6,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django import forms
 from django.contrib import messages
-from sakara.common.models import Clientes
+from sakara.common.models import Clientes, Servicios
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from sakara.jquery_validate import JqueryForm
@@ -132,6 +132,25 @@ class ClientesForm(JqueryForm):
     class Meta:
         model = Clientes
 
+class ServiciosForm(forms.Form):
+    def __init__(self, choices, *args, **kwargs):
+        super(ServiciosForm, self).__init__(*args, **kwargs)
+        self.fields['padre'] = forms.ChoiceField(
+            label="prefix",
+            required=False,
+            choices=choices,
+        )
+        self.fields['servicio'] = forms.CharField(
+            label="Servicio",
+            required=True,
+            widget=forms.TextInput(attrs={'placeholder': "Servicio", 'autocomplete': 'off'})
+        )
+        self.fields['descripcion'] = forms.CharField(
+            label="Descripcion",
+            required=False,
+            widget=forms.Textarea(attrs={'placeholder': 'Descripcion del Servicio', 'cols': 50, 'rows': 10})
+        )
+
 
 class LoginView(TemplateView):
     template_name = 'login.html'
@@ -194,3 +213,62 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = {}
         return context
+
+
+class CatalogoView(TemplateView):
+    template_name = "catalogo.html"
+    nivel = None
+    catalogo = []
+
+    def __init__(self):
+        self.catalogo = []
+        self.catalogo.append(('0', 'Sin categoría'))
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(CatalogoView, self).dispatch(*args, **kwargs)
+
+    def arbol_servicios(self, padre):
+        result = Servicios.objects.filter(padre=padre)
+
+        for key in result:
+            self.nivel = key.__getattribute__('nivel')
+            niv = ''
+            for num in range(0, self.nivel):
+                niv += '--'
+            # Lista de tuplas para el combo de servicios
+            self.catalogo.append((key.__getattribute__('id'), niv + key.__getattribute__('nombre')))
+            # Llamada recursiva
+            self.arbol_servicios(key.__getattribute__('id'))
+
+    def get_context_data(self, **kwargs):
+        context = super(CatalogoView, self).get_context_data(**kwargs)
+        self.arbol_servicios(0)
+        # Save in session categorias
+        self.request.session['catalogo'] = self.catalogo
+        context["form"] = ServiciosForm(choices=self.catalogo)
+        return context
+
+    def post(self, request):
+        v = {}
+        self.arbol_servicios(0)
+        form = v["form"] = ServiciosForm(data=request.POST, choices=self.catalogo)
+        if form.is_valid():
+            if request.POST['padre'] == '0':
+                nivel = 0
+            else:
+                padre_info = Servicios.objects.get(id=request.POST['padre'])
+                nivel = padre_info.nivel+1
+            serv = Servicios(
+                padre=request.POST['padre'],
+                nivel=nivel,
+                nombre=request.POST['servicio'],
+                descripcion=request.POST['descripcion']
+            )
+            serv.save()
+            messages.success(request, "Servicio añadido correctamente!")
+            return HttpResponseRedirect('')
+        else:
+            messages.error(request, "No se ha podido añadir el servicio.")
+
+        return self.render_to_response(v)
