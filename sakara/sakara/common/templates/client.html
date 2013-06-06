@@ -2,20 +2,59 @@
 {% load static from staticfiles %}
 {% block page_title %} Clientes {% endblock %}
 {% block content %}
+    <script type="text/javascript">
+        $(function() {
+            $( "#id_fecha_inicio, #id_fecha_final" ).datepicker({
+                firstDay: 1,
+                changeMonth: true,
+                changeYear: true
+            });
+            $( "#id_fecha_inicio, #id_fecha_final" ).datepicker( $.datepicker.regional[ "es" ] );
+        });
+    </script>
+    <header>
+        <div id="client_filter">
+            {% load jquery_validate %}  {% validate form "clientef-filter-form" %}
+            <form id="clientef-filter-form" method="get" action="/client/">
+                <div class="roww">
+                    {{ form.fecha_inicio }}
+                    {% validate_server form "fecha_inicio" %}
+                    {{ form.fecha_final }}
+                    {{ form.tipo_fecha }}
+                    {{ form.filter }}
+                    <input id="submit"  type="submit" value="Filtrar" />
+                    <input id="clean"  type="submit" value="Limpiar" />
+                </div>
+            </form>
+        </div>
+
+    </header>
     <div id="pagination">
         <table>
             <tr>
-                <td>Nombre</td>
-                <td>Fecha nacimiento</td>
-                <td>Fecha de alta</td>
+                <td class="nombres" onclick="pagination({{ clients.number }}, 'nombres', true)">Nombre<span class="{{ nombres }}"></span></td>
+                <td class="apellidos" onclick="pagination({{ clients.number }}, 'apellidos', true)">Apellidos<span class="{{ apellidos }}"></span></td>
+                <td class="fecha_nac" onclick="pagination({{ clients.number }}, 'fecha_nac', true)">Fecha nacimiento<span class="{{ fecha_nac }}"></span></td>
+                <td class="fecha_alta" onclick="pagination({{ clients.number }}, 'fecha_alta', true)">Fecha de alta<span class="{{ fecha_alta }}"></span></td>
+                <td>Dirección</td>
+                <td>E-mail</td>
+                <td>Teléfono</td>
+                <td>Móvil</td>
+                <td>Observaciones</td>
                 <td></td>
             </tr>
             {% for contact in clients %}
                 <tr>
                 {# Each "contact" is a Contact model object. #}
-                    <td>{{ contact.full_name|upper }}</td>
-                    <td>{{ contact.birthdate|upper }}</td>
-                    <td>{{ contact.date|upper }}</td>
+                    <td>{{ contact.nombres }}</td>
+                    <td>{{ contact.apellidos }}</td>
+                    <td>{{ contact.fecha_nac|date:"d/m/Y" }}</td>
+                    <td>{{ contact.fecha_alta|date:"d/m/Y" }}</td>
+                    <td>{{ contact.direccion }}</td>
+                    <td>{{ contact.email }}</td>
+                    <td>{{ contact.telefono }}</td>
+                    <td>{{ contact.movil }}</td>
+                    <td>{{ contact.observaciones }}</td>
                     <td><a href="/client/{{ contact.id }}/edit">Editar</a></td>
                 </tr>
             {% endfor %}
@@ -24,8 +63,8 @@
         <div class="pagination">
             <span class="step-links">
                 {% if clients.has_previous %}
-                    <button type="button" onclick="pagination(1)">First</button>
-                    <button type="button" onclick="pagination({{ clients.previous_page_number }})">previous</button>
+                    <button type="button" onclick="pagination(1, '{{ column }}')">First</button>
+                    <button type="button" onclick="pagination({{ clients.previous_page_number }}, '{{ column }}')">previous</button>
                 {% endif %}
                 <ul>
                     {% for item in clients.paginator.page_range %}
@@ -33,29 +72,79 @@
                             {% ifequal item clients.number %}
                                 {{ item }}
                             {% else %}
-                                <a href="javascript:void(0)" onclick="pagination({{ item }})">{{ item }}</a>
+                                <a href="javascript:void(0)" onclick="pagination({{ item }}, '{{ column }}')">{{ item }}</a>
                             {% endifequal %}
                         </li>
                     {% endfor %}
                 </ul>
                 {% if clients.has_next %}
-                    <button type="button" onclick="pagination({{ clients.next_page_number }})">next</button>
-                    <button type="button" onclick="pagination({{ clients.paginator.num_pages }})">Last</button>
+                    <button type="button" onclick="pagination({{ clients.next_page_number }}, '{{ column }}')">next</button>
+                    <button type="button" onclick="pagination({{ clients.paginator.num_pages }}, '{{ column }}')">Last</button>
                 {% endif %}
             </span>
         </div>
     </div>
-<script type="text/javascript">
-    function pagination(index){
-        $.ajax({
-            type : 'GET',
-            url : '/client/',
-            data : {"page": index},
-            success: function(data)
-            {
-                $("#pagination").html($(data).filter("#pagination").html());
+    <script type="text/javascript">
+        {# index: actual postion in the paginator #}
+        {# column: actual column to order #}
+        {# table: true value if table column is clicked #}
+        function pagination(index, column, table){
+            var orderby = $("." + column + " span").attr('class');
+            if (table){
+                if (orderby == "desc"){
+                    orderby = "asc";
+                }else{
+                    orderby = "desc";
+                }
             }
+
+            if($("#id_filter").val() == "true"){
+                var send_data = {
+                    "page": index,
+                    "column": column,
+                    "orderby": orderby,
+                    "fecha_inicio": $("#id_fecha_inicio").val(),
+                    "fecha_final": $("#id_fecha_final").val(),
+                    "tipo_fecha": $("#id_tipo_fecha").val()
+                };
+            }else{
+                var send_data = {"page": index, "column": column, "orderby": orderby};
+            }
+
+            $.ajax({
+                type : 'GET',
+                url : '/client/',
+                data : send_data,
+                success: function(data)
+                {
+                    $("#pagination").html($(data).filter("#pagination").html());
+                }
+            });
+        }
+
+        $("#submit").click(function(e){
+            e.preventDefault();
+            $.ajax({
+                type : 'GET',
+                url : '/client/',
+                data : {
+                    "fecha_inicio": $("#id_fecha_inicio").val(),
+                    "fecha_final": $("#id_fecha_final").val(),
+                    "tipo_fecha": $("#id_tipo_fecha").val()
+                },
+                success: function(data)
+                {
+                    $("#pagination").html($(data).filter("#pagination").html());
+                    $("#id_filter").val("true");
+                }
+            });
         });
-	}
-</script>
+
+        $("#clean").click(function(e){
+            e.preventDefault();
+            $("#id_filter").val("false");
+            pagination(1, "nombres");
+
+        });
+    </script>
 {% endblock %}

@@ -18,6 +18,10 @@ class Clientes(models.Model):
         return u'%s %s' % (self.nombres, self.apellidos)
     full_name = property(_get_full_name)
 
+    # def format_birthdate(self):
+    #     return self.gecha_nac.strftime('%d/%Y')[:3] + "0's"
+    # decade_born_in.short_description = 'Birth decade'
+
     def copy_model_instance(self, obj, id):
         for f in obj._meta.fields:
             self.__setattr__(f.name, getattr(obj, f.name))

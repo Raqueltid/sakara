@@ -9,7 +9,7 @@ from django.contrib import messages
 from sakara.common.models import Clientes
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from sakara.jquery_validate import JqueryForm
+from sakara.jquery_validate import JqueryForm, JqueryModelForm
 from sakara.common.constants import *
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.forms.models import model_to_dict
@@ -39,9 +39,10 @@ class LoginForm(forms.Form):
     )
 
 
-class ClientesForm(JqueryForm):
+class ClientesForm(JqueryModelForm):
     def __init__(self, client=None, *args, **kwargs):
         self.base_fields['nombres'] = forms.CharField(
+            label="nombres",
             max_length=50,
             initial=client["nombres"] if "nombres" in client and client["nombres"] else '',
             error_messages={
@@ -52,6 +53,7 @@ class ClientesForm(JqueryForm):
         )
 
         self.base_fields['apellidos'] = forms.CharField(
+            label="apellidos",
             max_length=100,
             initial=client["apellidos"] if "apellidos" in client and client["apellidos"] else '',
             error_messages={
@@ -67,6 +69,7 @@ class ClientesForm(JqueryForm):
             valid_datetime = client["fecha_nac"] if "fecha_nac" in client and client["fecha_nac"] else ''
 
         self.base_fields['fecha_nac'] = forms.DateField(
+            label="fecha nacimiento",
             input_formats=['%d/%m/%Y'],
             help_text='Formato: %s/%s/%s' % (str(datetime.date.today().day).zfill(2),
                                              str(datetime.date.today().month).zfill(2),
@@ -80,6 +83,7 @@ class ClientesForm(JqueryForm):
         )
 
         self.base_fields['direccion'] = forms.CharField(
+            label="direccion",
             max_length=100,
             required=False,
             initial=client["direccion"] if "direccion" in client and client["direccion"] else '',
@@ -90,6 +94,7 @@ class ClientesForm(JqueryForm):
         )
 
         self.base_fields['email'] = forms.EmailField(
+            label="email",
             required=False,
             initial=client["email"] if "email" in client and client["email"] else '',
             error_messages={
@@ -99,6 +104,7 @@ class ClientesForm(JqueryForm):
         )
 
         self.base_fields['telefono'] = forms.RegexField(
+            label="telefono",
             required=False,
             max_length=9,
             regex=CONST_PHONENUMBER,
@@ -111,6 +117,7 @@ class ClientesForm(JqueryForm):
         )
 
         self.base_fields['movil'] = forms.RegexField(
+            label="movil",
             required=False,
             max_length=9,
             regex=CONST_PHONENUMBER,
@@ -128,6 +135,7 @@ class ClientesForm(JqueryForm):
             valid_datetime = client["fecha_alta"] if "fecha_alta" in client and client["fecha_alta"] else ''
 
         self.base_fields['fecha_alta'] = forms.DateField(
+            label="fecha alta",
             input_formats=['%d/%m/%Y'],
             help_text='Formato: %s/%s/%s' % (str(datetime.date.today().day).zfill(2),
                                              str(datetime.date.today().month).zfill(2),
@@ -141,6 +149,7 @@ class ClientesForm(JqueryForm):
         )
 
         self.base_fields['observaciones'] = forms.CharField(
+            label="observaciones",
             max_length=200,
             required=False,
             initial=client["observaciones"] if "observaciones" in client and client["observaciones"] else '',
@@ -153,6 +162,48 @@ class ClientesForm(JqueryForm):
 
     class Meta:
         model = Clientes
+
+
+class ClientesFilterForm(JqueryForm):
+
+    fecha_inicio = forms.DateField(
+        input_formats=['%d/%m/%Y'],
+        label="fecha inicio",
+        required=True,
+        help_text='Formato: %s/%s/%s' % (str(datetime.date.today().day).zfill(2),
+                                         str(datetime.date.today().month).zfill(2),
+                                         datetime.date.today().year),
+        error_messages={
+            'invalid': u"El formato no es v\u00E1lido."
+        },
+        widget=forms.DateInput(attrs={'placeholder': 'Fecha de inicio', 'autocomplete': 'off'})
+    )
+
+    fecha_final = forms.DateField(
+        input_formats=['%d/%m/%Y'],
+        label="fecha final",
+        required=True,
+        help_text='Formato: %s/%s/%s' % (str(datetime.date.today().day).zfill(2),
+                                         str(datetime.date.today().month).zfill(2),
+                                         datetime.date.today().year),
+        error_messages={
+            'invalid': u"El formato no es v\u00E1lido."
+        },
+        widget=forms.DateInput(attrs={'placeholder': 'Fecha final', 'autocomplete': 'off'})
+    )
+
+    tipo_fecha = forms.ChoiceField(
+        label="tipo de fecha",
+        required=True,
+        choices=CONST_SELECT_DATE,
+        widget=forms.Select()
+    )
+
+    filter = forms.BooleanField(
+        initial=False,
+        required=False,
+        widget=forms.HiddenInput()
+    )
 
 
 class LoginView(TemplateView):
@@ -190,13 +241,38 @@ class ClientView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(ClientView, self).get_context_data(**kwargs)
-        c = Clientes.objects.all().order_by('nombres')
+
+        column = self.request.GET.get('column')
+        orderby = "-" if self.request.GET.get('orderby') == "desc" else ""
+        if column:
+            c = Clientes.objects.all().order_by(orderby + column)
+            context[column] = self.request.GET.get('orderby')
+            context["column"] = column
+        else:
+            c = Clientes.objects.all().order_by('nombres')
+            context["nombres"] = "asc"
+            context["column"] = "nombres"
+
+        if 'tipo_fecha' in self.request.GET:
+            form = ClientesFilterForm(data=self.request.GET)
+            if form.is_valid():
+                start_date = self.request.GET['fecha_inicio'].split("/")
+                end_date = self.request.GET['fecha_final'].split("/")
+                if self.request.GET['tipo_fecha'] == '1':
+                    c = c.filter(fecha_nac__range=(start_date[2]+"-"+start_date[1]+"-"+start_date[0],
+                                                   end_date[2]+"-"+end_date[1]+"-"+end_date[0]))
+                else:
+                    c = c.filter(fecha_alta__range=(start_date[2]+"-"+start_date[1]+"-"+start_date[0],
+                                                   end_date[2]+"-"+end_date[1]+"-"+end_date[0]))
+
         client_list = list()
         for e in c:
-            txt = dict({"id": e.id, "full_name": e.full_name, "birthdate": e.fecha_nac, "date": e.fecha_alta})
+            txt = dict()
+            for key in e._meta.fields:
+                txt.update({key.name: getattr(e, key.name)})
             client_list.append(txt)
 
-        paginator = Paginator(client_list, 3)  # Show 25 contacts per page
+        paginator = Paginator(client_list, 5)  # Show 25 contacts per page
 
         page = self.request.GET.get('page')
         try:
@@ -208,6 +284,7 @@ class ClientView(TemplateView):
             # If page is out of range (e.g. 9999), deliver last page of results.
             clients = paginator.page(paginator.num_pages)
         context["clients"] = clients
+        context["form"] = ClientesFilterForm()
 
         return context
 
