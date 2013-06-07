@@ -16,7 +16,7 @@
         <div id="client_filter">
             {% load jquery_validate %}  {% validate form "clientef-filter-form" %}
             <form id="clientef-filter-form" method="get" action="/client/">
-                <div class="roww">
+                <div class="row">
                     {{ form.fecha_inicio }}
                     {% validate_server form "fecha_inicio" %}
                     {{ form.fecha_final }}
@@ -30,6 +30,7 @@
 
     </header>
     <div id="pagination">
+    {% if clients.object_list %}
         <table>
             <tr>
                 <td class="nombres" onclick="pagination({{ clients.number }}, 'nombres', true)">Nombre<span class="{{ nombres }}"></span></td>
@@ -83,6 +84,11 @@
                 {% endif %}
             </span>
         </div>
+    {% else %}
+        <div>
+        No se obtuvieron resultados
+        </div>
+    {% endif %}
     </div>
     <script type="text/javascript">
         {# index: actual postion in the paginator #}
@@ -108,6 +114,9 @@
                     "tipo_fecha": $("#id_tipo_fecha").val()
                 };
             }else{
+                $("#id_fecha_inicio").val("")
+                $("#id_fecha_final").val("")
+                $("#id_tipo_fecha").val("0")
                 var send_data = {"page": index, "column": column, "orderby": orderby};
             }
 
@@ -123,25 +132,32 @@
         }
 
         $("#submit").click(function(e){
+            if($("#clientef-filter-form").not(".status-error")){
+                $.ajax({
+                    type : 'GET',
+                    url : '/client/',
+                    data : {
+                        "fecha_inicio": $("#id_fecha_inicio").val(),
+                        "fecha_final": $("#id_fecha_final").val(),
+                        "tipo_fecha": $("#id_tipo_fecha").val()
+                    },
+                    success: function(data)
+                    {
+                        $("#pagination").html($(data).filter("#pagination").html());
+                        $("#id_filter").val("true");
+                    }
+                });
+            }
             e.preventDefault();
-            $.ajax({
-                type : 'GET',
-                url : '/client/',
-                data : {
-                    "fecha_inicio": $("#id_fecha_inicio").val(),
-                    "fecha_final": $("#id_fecha_final").val(),
-                    "tipo_fecha": $("#id_tipo_fecha").val()
-                },
-                success: function(data)
-                {
-                    $("#pagination").html($(data).filter("#pagination").html());
-                    $("#id_filter").val("true");
-                }
-            });
         });
 
         $("#clean").click(function(e){
             e.preventDefault();
+            if($("#clientef-filter-form .status-error")){
+                $("#clientef-filter-form div").removeClass("status-error");
+                $("#clientef-filter-form input").removeClass("error");
+                $("#clientef-filter-form label").remove()
+            }
             $("#id_filter").val("false");
             pagination(1, "nombres");
 
